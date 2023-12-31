@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RUD RECOVERY CALCULATOR</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            color: #495057;
+        }
+
+        .container {
+            margin-top: 50px;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h5 {
+            color: #8a63a2; /* Light Violet */
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        form {
+            margin-top: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            color: #343a40;
+        }
+
+        button {
+            margin-top: 20px;
+        }
+
+        .note {
+            margin-top: 20px;
+        }
+
+        #recoveryResult {
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        /* Apply the light violet color to buttons and form fields */
+        .btn-primary {
+            background-color: #8a63a2; /* Light Violet */
+            border-color: #8a63a2; /* Light Violet */
+        }
+
+        .btn-primary:hover {
+            background-color: #6c4b83; /* Darker Violet on hover */
+            border-color: #6c4b83; /* Darker Violet on hover */
+        }
+
+        input[type="text"],
+        input[type="password"],
+        select {
+            background-color: #f2f0f5; /* Light Gray */
+        }
+    </style>
+</head>
+<body>
+   
+
+    <div class="container">
+        <h5>RUD RECOVERY CALCULATOR</h5>
+
+        <!-- Login Form -->
+        <form method="post" class="mt-4" id="loginForm">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" name="username" id="username" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" name="password" id="password" class="form-control" required>
+            </div>
+            <div class="submit-btn-container">
+                <button type="button" class="btn btn-primary" onclick="login()">Login</button>
+            </div>
+        </form>
+
+        <hr>
+
+        <!-- Recovery Calculator Form -->
+        <form method="post" class="mt-4" id="recoveryForm" style="display: none;">
+            <!-- Legacy Account and Customer Tariff in the same form row -->
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="legacy_account">Legacy Account:</label>
+                    <input type="text" name="legacy_account" id="legacy_account" class="form-control" maxlength="8" onchange="fetchData()" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="customer_tariff">Customer Tariff:</label>
+                    <select name="customer_tariff" id="customer_tariff" class="form-control" required>
+                        <option value="AGRIFISHER">AGRIFISHER</option>
+                        <option value="COMMERCIAL">COMMERCIAL</option>
+                        <option value="UNPROTECTED">UNPROTECTED</option>
+                        <option value="TOURISMHOTEL">TOURISMHOTEL</option>
+                        <option value="GOVERNMENT">GOVERNMENT</option>
+                        <option value="PROTECTED">PROTECTED</option>
+                        <option value="VDISCOUNT">VDISCOUNT</option>
+                        
+                    </select>
+                </div>
+            </div>
+
+            <!-- Bad Period -->
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="bad_from_date">Started Bad Period Details:</label>
+                    <input type="date" name="bad_from_date" id="bad_from_date" class="form-control" onchange="updateRecoveredMonths()" required>
+                    <!-- Additional input for reading -->
+                    <input type="text" name="started_bad_reading" id="bad_reading_input" class="form-control mt-2" placeholder="Enter Reading" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="bad_to_date">End Bad Period Details</label>
+                    <input type="date" name="bad_to_date" id="bad_to_date" class="form-control" onchange="updateRecoveredMonths()" required>
+                    <!-- Additional input for reading -->
+                    <input type="text" name="end_bad_reading" id="bad_reading_input_end" class="form-control mt-2" placeholder="Enter Reading" required>
+                </div>
+            </div>
+
+            <!-- Good Period -->
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="good_from_date">Started Good Period Details:</label>
+                    <input type="date" name="good_from_date" id="good_from_date" class="form-control" required>
+                    <!-- Additional input for reading -->
+                    <input type="text" name="started_good_reading" id="good_reading_input" class="form-control mt-2" placeholder="Enter Reading" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="good_to_date">End Good Period Details:</label>
+                    <input type="date" name="good_to_date" id="good_to_date" class="form-control" required>
+                    <!-- Additional input for reading -->
+                    <input type="text" name="end_good_reading" id="good_reading_input_end" class="form-control mt-2" placeholder="Enter Reading" required>
+                </div>
+            </div>
+
+            <!-- Adjustment Type, Recovery Percentage, Number of Days, Consumption, and Amount for Good Period -->
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="adjustment_type">Adjustment Type:</label>
+                    <select name="adjustment_type" id="adjustment_type" class="form-control" required>
+                        <option value="tampered">Tampered</option>
+                        <option value="meter_test">Meter Test</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="recovery_percentage">Recovery Percentage:</label>
+                    <select name="recovery_percentage" id="recovery_percentage" class="form-control" required>
+                        <option value="100%">100%</option>
+                        <option value="91%">91%</option>
+                        <option value="73%">73%</option>
+                        <option value="66%">66%</option>
+                        <option value="60%">60%</option>
+                        <option value="58%">58%</option>
+                        <option value="50%">50%</option>
+                        <option value="40%">40%</option>
+                        <option value="33%">33%</option>
+                        <option value="25%">25%</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- VAT Eligibility and VAT Start Date on the same row -->
+<div class="form-row">
+    <div class="form-group col-md-6">
+        <label for="vat_eligibility">VAT Eligibility:</label>
+        <select name="vat_eligibility" id="vat_eligibility" class="form-control">
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+        </select>
+    </div>
+    
+    <div class="form-group col-md-6">
+        <label for="vat_start_date">VAT Start Date:</label>
+        <input type="date" name="vat_start_date" id="vat_start_date" class="form-control" value="2021-04-01">
+    </div>
+</div>
+
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="recovered_months">Recovered Months Period:</label>
+                    <input type="number" name="recovered_months" id="recovered_months" class="form-control" placeholder="Enter Recovered Months" readonly required>
+                </div>
+            
+                <div class="form-group col-md-6">
+                    <label for="num_days">Recovered Days:</label>
+                    <input type="text" name="num_days" id="num_days" class="form-control" readonly>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="consumption">Recovered Consumption KWH:</label>
+                <input type="text" name="consumption" id="consumption" class="form-control" readonly>
+            </div>
+
+            <!-- Recovered Amount and VAT Amount on the same row -->
+<div class="form-row">
+    <div class="form-group col-md-6">
+        <label for="amount">Recovered Amount OMR:</label>
+        <input type="text" name="amount" id="amount" class="form-control" readonly>
+    </div>
+    
+    <div class="form-group col-md-6">
+        <label for="vat_amount">VAT 5% Amount (OMR):</label>
+        <input type="text" name="vat_amount" id="vat_amount" class="form-control" readonly>
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="consumption">Total Recovered Amount:</label>
+    <input type="text" name="Total Recovered Amount" id="Total Recovered Amount" class="form-control" readonly>
+</div>
+            
+
+
+            <!-- Button Row -->
+<div class="form-row">
+    <div class="col-md-6 text-left">
+        <button type="button" class="btn btn-primary" onclick="calculateRecovery()">Calculate Recovery</button>
+    </div>
+    
+    <div class="col-md-6 text-right">
+        <button type="button" class="btn btn-primary" onclick="submitForm()">Submit</button>
+    </div>
+</div>
+
+        <!-- Note -->
+        <div class="note">
+            <h6>Make sure that selected periods and readings are correct</h6>
+            <p style="font-style: italic; color: #8a63a2;">Revenue Assurance Team</p>
+        </div>
+
+        <!-- Recovery Result Placeholder -->
+        <p id="recoveryResult"></p>
+       
+    </div>
+    <form action="/submit" method="POST">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+        <div id="submissionMessage"><?php echo $message; ?></div>
+    <script>
+        // Login function
+        function login() {
+            var username = document.getElementById('username').value;
+            var password = document.getElementById('password').value;
+
+            // Your login logic goes here
+            if (username === 'DPL0346' && password === 'Oman@2020') {
+                // Assuming successful login, show the recovery form
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('recoveryForm').style.display = 'block';
+            } else if (username === 'DPL0842' && password === 'Oman@2020') {
+                // Add logic for the new user
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('recoveryForm').style.display = 'block';
+            } else {
+                alert('Invalid username or password');
+            }
+        }
+        function submitForm() {
+    // Serialize the form data
+    var formData = $("#recoveryForm").serialize();
+
+    
+}
+  
+
+        // Update Recovered Months dynamically
+        function updateRecoveredMonths() {
+            var badFromDate = new Date(document.getElementById('bad_from_date').value);
+            var badToDate = new Date(document.getElementById('bad_to_date').value);
+            var recoveredMonths = calculateMonthDifference(badFromDate, badToDate);
+
+            if (!isNaN(recoveredMonths) && recoveredMonths > 0) {
+                document.getElementById('recovered_months').value = recoveredMonths;
+            }
+        }
+
+        // Calculate month difference
+function calculateMonthDifference(startDate, endDate) {
+    var months;
+    months = (endDate.getFullYear() - startDate.getFullYear()) * 12;
+    months -= startDate.getMonth();
+    months += endDate.getMonth();
+    return months <= 0 ? 0 : months;
+}
+
+// Recovery calculation function
+function calculateRecovery() {
+    // Extracting values for Good Period
+    var goodFromDate = new Date(document.getElementById('good_from_date').value);
+    var goodToDate = new Date(document.getElementById('good_to_date').value);
+    var startedGoodReading = parseFloat(document.getElementById('good_reading_input').value);
+    var endGoodReading = parseFloat(document.getElementById('good_reading_input_end').value);
+
+    // Extracting values for Bad Period
+    var badFromDate = new Date(document.getElementById('bad_from_date').value);
+    var badToDate = new Date(document.getElementById('bad_to_date').value);
+    var startedBadReading = parseFloat(document.getElementById('bad_reading_input').value);
+    var endBadReading = parseFloat(document.getElementById('bad_reading_input_end').value);
+
+    // Extracting recovered months period
+    var recoveredMonths = parseInt(document.getElementById('recovered_months').value);
+
+    // Debugging: Log input values
+    console.log('Good From Date:', goodFromDate);
+    console.log('Good To Date:', goodToDate);
+    console.log('Started Good Reading:', startedGoodReading);
+    console.log('End Good Reading:', endGoodReading);
+    console.log('Bad From Date:', badFromDate);
+    console.log('Bad To Date:', badToDate);
+    console.log('Started Bad Reading:', startedBadReading);
+    console.log('End Bad Reading:', endBadReading);
+    console.log('Recovered Months:', recoveredMonths);
+
+    // Validate recovered months input
+    if (isNaN(recoveredMonths) || recoveredMonths <= 0) {
+        alert('Invalid recovered months period. Please enter a valid value.');
+        return;
+    }
+
+    // Calculate the difference in days for bad and good periods
+    var badDaysDiff = Math.ceil((badToDate - badFromDate) / (1000 * 60 * 60 * 24));
+    var goodDaysDiff = Math.ceil((goodToDate - goodFromDate) / (1000 * 60 * 60 * 24));
+
+    // Calculate total bad and good consumption
+    var totalBadConsumption = endBadReading - startedBadReading;
+    var totalGoodConsumption = endGoodReading - startedGoodReading;
+
+    // Calculate daily consumption rates
+    var badDailyConsumption = totalBadConsumption / badDaysDiff;
+    var goodDailyConsumption = totalGoodConsumption / goodDaysDiff;
+
+    // Calculate consumption rate
+    var consumptionRate = goodDailyConsumption - badDailyConsumption;
+
+    // Extracting recovery percentage
+    var recoveryPercentage = parseFloat(document.getElementById('recovery_percentage').value) / 100;
+
+    // Calculate recovered consumption with recovery percentage
+    var recoveredConsumption = consumptionRate * badDaysDiff * recoveryPercentage;
+
+    // Calculate daily recovered consumption and total rate
+    var dailyRecoveredConsumption = recoveredConsumption / badDaysDiff;
+    var year = badFromDate.getFullYear();
+
+    // Call the function to calculate recovered consumption
+    calculateRecoveredConsumption(badFromDate, badDaysDiff, dailyRecoveredConsumption, year);
+    // Added logic to extract the year from the 'Bad From Date' for rate calculation
+    var year = badFromDate.getFullYear();
+
+    // Main function to calculate recovered consumption
+function calculateRecoveredConsumption(badFromDate, badDaysDiff, dailyRecoveredConsumption, year) {
+    var currentDate = new Date(badFromDate);
+    var totalRate = 0;
+    var totalRecoveredConsumption = 0;
+    var daysProcessed = 0;
+
+    while (daysProcessed < badDaysDiff) {
+        var currentMonth = currentDate.getMonth();
+        var daysInCurrentMonth = new Date(year, currentMonth + 1, 0).getDate();
+        var daysLeftInMonth = daysInCurrentMonth - currentDate.getDate() + 1;
+        var daysToProcess = Math.min(daysLeftInMonth, badDaysDiff - daysProcessed);
+        var monthlyConsumption = dailyRecoveredConsumption * daysToProcess;
+
+        totalRate += calculateRateForYear(year, currentMonth + 1, monthlyConsumption, daysToProcess);
+        totalRecoveredConsumption += monthlyConsumption;
+
+        currentDate.setDate(currentDate.getDate() + daysToProcess);
+        daysProcessed += daysToProcess;
+    }
+
+    updateUI(badDaysDiff, totalRecoveredConsumption, totalRate);
+}
+
+// Function to update the User Interface
+function updateUI(badDaysDiff, totalRecoveredConsumption, totalRate) {
+    document.getElementById('num_days').value = badDaysDiff;
+    document.getElementById('consumption').value = totalRecoveredConsumption.toFixed(2);
+    document.getElementById('amount').value = totalRate.toFixed(2);
+    document.getElementById('recoveryResult').innerHTML = 'Recovered Consumption: ' + totalRecoveredConsumption.toFixed(2);
+    
+}
+
+
+// Function to calculate rate for a given year
+function calculateRateForYear(year, month, consumption, daysToProcess) {
+    var rates = {
+        2021: {
+            PROTECTED: {
+            Jan: [0.011, 0.014, 0.022],
+            Feb: [0.012, 0.015, 0.024],
+            Mar: [0.012, 0.016, 0.027],
+            Apr: [0.012, 0.016, 0.027],
+            May: [0.012, 0.016, 0.027],
+            Jun: [0.012, 0.016, 0.027],
+            Jul: [0.012, 0.016, 0.027],
+            Aug: [0.012, 0.016, 0.027],
+            Sep: [0.012, 0.016, 0.027],
+            Oct: [0.012, 0.017, 0.030],
+            Nov: [0.013, 0.018, 0.030],
+            Dec: [0.014, 0.019, 0.030]
+        },
+        UNPROTECTED: {
+            Jan: [0.014, 0.018, 0.022],
+            Feb: [0.015, 0.019, 0.027],
+            Mar: [0.016, 0.020, 0.027],
+            Apr: [0.016, 0.020, 0.027],
+            May: [0.016, 0.020, 0.027],
+            Jun: [0.016, 0.020, 0.027],
+            Jul: [0.016, 0.020, 0.027],
+            Aug: [0.016, 0.020, 0.027],
+            Sep: [0.016, 0.020, 0.027],
+            Oct: [0.017, 0.022, 0.030],
+            Nov: [0.018, 0.023, 0.030],
+            Dec: [0.019, 0.024, 0.030]
+        },
+        VDISCOUNT: {
+            Jan: [0.010, 0.013, 0.020],
+            Feb: [0.010, 0.013, 0.020],
+            Mar: [0.010, 0.013, 0.020],
+            Apr: [0.010, 0.013, 0.020],
+            May: [0.010, 0.013, 0.020],
+            Jun: [0.010, 0.013, 0.020],
+            Jul: [0.010, 0.013, 0.020],
+            Aug: [0.010, 0.013, 0.020],
+            Sep: [0.010, 0.013, 0.020],
+            Oct: [0.010, 0.013, 0.020],
+            Nov: [0.010, 0.013, 0.020],
+            Dec: [0.010, 0.013, 0.020]
+        },
+        AGRIFISHER: {
+            Jan: [0.012, 0.016, 0.024],
+            Feb: [0.012, 0.016, 0.024],
+            Mar: [0.012, 0.016, 0.024],
+            Apr: [0.012, 0.016, 0.024],
+            May: [0.012, 0.016, 0.024],
+            Jun: [0.012, 0.016, 0.024],
+            Jul: [0.012, 0.016, 0.024],
+            Aug: [0.012, 0.016, 0.024],
+            Sep: [0.012, 0.016, 0.024],
+            Oct: [0.012, 0.016, 0.024],
+            Nov: [0.012, 0.016, 0.024],
+            Dec: [0.012, 0.016, 0.024]
+        },
+        COMMERCIAL: {
+            Jan: [0.021],
+            Feb: [0.021],
+            Mar: [0.021],
+            Apr: [0.021],
+            May: [0.029],
+            Jun: [0.029],
+            Jul: [0.029],
+            Aug: [0.029],
+            Sep: [0.029],
+            Oct: [0.021],
+            Nov: [0.021],
+            Dec: [0.021]
+        },
+        GOVERNMENT: {
+            Jan: [0.021],
+            Feb: [0.021],
+            Mar: [0.021],
+            Apr: [0.021],
+            May: [0.029],
+            Jun: [0.029],
+            Jul: [0.029],
+            Aug: [0.029],
+            Sep: [0.029],
+            Oct: [0.021],
+            Nov: [0.021],
+            Dec: [0.021]
+        },
+        TOURISMHOTEL: {
+            Jan: [0.021],
+            Feb: [0.021],
+            Mar: [0.021],
+            Apr: [0.021],
+            May: [0.029],
+            Jun: [0.029],
+            Jul: [0.029],
+            Aug: [0.029],
+            Sep: [0.029],
+            Oct: [0.021],
+            Nov: [0.021],
+            Dec: [0.021]
+        }
+        },
+        2022: {
+            PROTECTED: {
+            Jan: [0.014, 0.017, 0.030],
+            Feb: [0.014, 0.017, 0.030],
+            Mar: [0.014, 0.017, 0.030],
+            Apr: [0.014, 0.017, 0.030],
+            May: [0.012, 0.014, 0.026],
+            Jun: [0.012, 0.014, 0.026],
+            Jul: [0.012, 0.014, 0.026],
+            Aug: [0.012, 0.014, 0.026],
+            Sep: [0.014, 0.017, 0.030],
+            Oct: [0.014, 0.017, 0.030],
+            Nov: [0.014, 0.017, 0.030],
+            Dec: [0.014, 0.017, 0.030]
+        },
+        UNPROTECTED: {
+            Jan: [0.020, 0.025, 0.030],
+            Feb: [0.020, 0.025, 0.030],
+            Mar: [0.020, 0.025, 0.030],
+            Apr: [0.020, 0.025, 0.030],
+            May: [0.020, 0.025, 0.030],
+            Jun: [0.020, 0.025, 0.030],
+            Jul: [0.020, 0.025, 0.030],
+            Aug: [0.020, 0.025, 0.030],
+            Sep: [0.020, 0.025, 0.030],
+            Oct: [0.020, 0.025, 0.030],
+            Nov: [0.020, 0.025, 0.030],
+            Dec: [0.020, 0.025, 0.030]
+        },
+        VDISCOUNT: {
+            Jan: [0.010, 0.013, 0.020],
+            Feb: [0.010, 0.013, 0.020],
+            Mar: [0.010, 0.013, 0.020],
+            Apr: [0.010, 0.013, 0.020],
+            May: [0.010, 0.013, 0.020],
+            Jun: [0.010, 0.013, 0.020],
+            Jul: [0.010, 0.013, 0.020],
+            Aug: [0.010, 0.013, 0.020],
+            Sep: [0.010, 0.013, 0.020],
+            Oct: [0.010, 0.013, 0.020],
+            Nov: [0.010, 0.013, 0.020],
+            Dec: [0.010, 0.013, 0.020]
+        },
+        AGRIFISHER: {
+            Jan: [0.012, 0.016, 0.024],
+            Feb: [0.012, 0.016, 0.024],
+            Mar: [0.012, 0.016, 0.024],
+            Apr: [0.012, 0.016, 0.024],
+            May: [0.012, 0.016, 0.024],
+            Jun: [0.012, 0.016, 0.024],
+            Jul: [0.012, 0.016, 0.024],
+            Aug: [0.012, 0.016, 0.024],
+            Sep: [0.012, 0.016, 0.024],
+            Oct: [0.012, 0.016, 0.024],
+            Nov: [0.012, 0.016, 0.024],
+            Dec: [0.012, 0.016, 0.024]
+        },
+        COMMERCIAL: {
+            Jan: [0.021],
+            Feb: [0.021],
+            Mar: [0.021],
+            Apr: [0.021],
+            May: [0.029],
+            Jun: [0.029],
+            Jul: [0.029],
+            Aug: [0.029],
+            Sep: [0.029],
+            Oct: [0.021],
+            Nov: [0.021],
+            Dec: [0.021]
+        },
+        GOVERNMENT: {
+            Jan: [0.021],
+            Feb: [0.021],
+            Mar: [0.021],
+            Apr: [0.021],
+            May: [0.029],
+            Jun: [0.029],
+            Jul: [0.029],
+            Aug: [0.029],
+            Sep: [0.029],
+            Oct: [0.021],
+            Nov: [0.021],
+            Dec: [0.021]
+        },
+        TOURISMHOTEL: {
+            Jan: [0.021],
+            Feb: [0.021],
+            Mar: [0.021],
+            Apr: [0.021],
+            May: [0.029],
+            Jun: [0.029],
+            Jul: [0.029],
+            Aug: [0.029],
+            Sep: [0.029],
+            Oct: [0.021],
+            Nov: [0.021],
+            Dec: [0.021]
+        }
+        },
+        2023: {
+            PROTECTED: {
+            Jan: [0.014, 0.018, 0.032],
+            Feb: [0.014, 0.018, 0.032],
+            Mar: [0.014, 0.018, 0.032],
+            Apr: [0.014, 0.018, 0.032],
+            May: [0.0119, 0.0153, 0.0272],
+            Jun: [0.0119, 0.0153, 0.0272],
+            Jul: [0.0119, 0.0153, 0.0272],
+            Aug: [0.0119, 0.0153, 0.0272],
+            Sep: [0.014, 0.018, 0.032],
+            Oct: [0.014, 0.018, 0.032],
+            Nov: [0.014, 0.018, 0.032],
+            Dec: [0.014, 0.018, 0.032]
+        },
+        UNPROTECTED: {
+            Jan: [0.022, 0.026, 0.032],
+            Feb: [0.022, 0.026, 0.032],
+            Mar: [0.022, 0.026, 0.032],
+            Apr: [0.022, 0.026, 0.032],
+            May: [0.022, 0.026, 0.032],
+            Jun: [0.022, 0.026, 0.032],
+            Jul: [0.022, 0.026, 0.032],
+            Aug: [0.022, 0.026, 0.032],
+            Sep: [0.022, 0.026, 0.032],
+            Oct: [0.022, 0.026, 0.032],
+            Nov: [0.022, 0.026, 0.032],
+            Dec: [0.022, 0.026, 0.032]
+        },
+        VDISCOUNT: {
+            Jan: [0.010, 0.013, 0.020],
+            Feb: [0.010, 0.013, 0.020],
+            Mar: [0.010, 0.013, 0.020],
+            Apr: [0.010, 0.013, 0.020],
+            May: [0.010, 0.013, 0.020],
+            Jun: [0.010, 0.013, 0.020],
+            Jul: [0.010, 0.013, 0.020],
+            Aug: [0.010, 0.013, 0.020],
+            Sep: [0.010, 0.013, 0.020],
+            Oct: [0.010, 0.013, 0.020],
+            Nov: [0.010, 0.013, 0.020],
+            Dec: [0.010, 0.013, 0.020]
+        },
+        AGRIFISHER: {
+            Jan: [0.012, 0.016, 0.024],
+            Feb: [0.012, 0.016, 0.024],
+            Mar: [0.012, 0.016, 0.024],
+            Apr: [0.012, 0.016, 0.024],
+            May: [0.012, 0.016, 0.024],
+            Jun: [0.012, 0.016, 0.024],
+            Jul: [0.012, 0.016, 0.024],
+            Aug: [0.012, 0.016, 0.024],
+            Sep: [0.012, 0.016, 0.024],
+            Oct: [0.012, 0.016, 0.024],
+            Nov: [0.012, 0.016, 0.024],
+            Dec: [0.012, 0.016, 0.024]
+        },
+        COMMERCIAL: {
+            Jan: [0.021],
+            Feb: [0.021],
+            Mar: [0.021],
+            Apr: [0.021],
+            May: [0.029],
+            Jun: [0.029],
+            Jul: [0.029],
+            Aug: [0.029],
+            Sep: [0.029],
+            Oct: [0.021],
+            Nov: [0.021],
+            Dec: [0.021]
+        },
+        GOVERNMENT: {
+            Jan: [0.021],
+            Feb: [0.021],
+            Mar: [0.021],
+            Apr: [0.021],
+            May: [0.029],
+            Jun: [0.029],
+            Jul: [0.029],
+            Aug: [0.029],
+            Sep: [0.029],
+            Oct: [0.021],
+            Nov: [0.021],
+            Dec: [0.021]
+        },
+        TOURISMHOTEL: {
+            Jan: [0.021],
+            Feb: [0.021],
+            Mar: [0.021],
+            Apr: [0.021],
+            May: [0.029],
+            Jun: [0.029],
+            Jul: [0.029],
+            Aug: [0.029],
+            Sep: [0.029],
+            Oct: [0.021],
+            Nov: [0.021],
+            Dec: [0.021]
+        }
+    
+    }
+
+        
+}
+   
+    var tariff = document.getElementById('customer_tariff').value;
+    var currentRates = rates[year][tariff][getRatePeriod(month)];
+    var thresholds = getThresholds(tariff, month, year);
+    var [proratedThreshold1, proratedThreshold2] = calculateProratedThresholds(...thresholds, daysToProcess);
+    var proratedThreshold3 = proratedThreshold1 + proratedThreshold2;
+
+    if (['COMMERCIAL', 'GOVERNMENT', 'TOURISMHOTEL'].includes(tariff)) {
+        return consumption * currentRates[0]; // Flat rate for these tariffs
+    } else {
+        return calculateTariff(consumption, currentRates, proratedThreshold1, proratedThreshold2, proratedThreshold3);
+    }
+}
+        
+
+// Function to calculate prorated thresholds
+function calculateProratedThresholds(standardThreshold1, standardThreshold2, daysToProcess) {
+    var proratedThreshold1 = (standardThreshold1 / 30) * daysToProcess;
+    var proratedThreshold2 = (standardThreshold2 / 30) * daysToProcess;
+    return [proratedThreshold1, proratedThreshold2];
+}
+
+// Function to calculate the tariff based on consumption and thresholds
+function calculateTariff(consumption, rates, proratedThreshold1, proratedThreshold2, proratedThreshold3) {
+    if (consumption <= proratedThreshold1) {
+        return consumption * rates[0];
+    } else if (consumption <= proratedThreshold2) {
+        return proratedThreshold1 * rates[0] + (consumption - proratedThreshold1) * rates[1];
+    } else {
+        return proratedThreshold1 * rates[0] + proratedThreshold2 * rates[1] + (consumption - proratedThreshold3) * rates[2];
+    }
+}
+
+// Function to get rate period based on the month
+function getRatePeriod(month) {
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months[month - 1] || 'Invalid';
+}
+
+// Function to get thresholds based on tariff, month, and year
+function getThresholds(tariff, month, year) {
+    if (year === 2021) {
+        if (tariff === 'UNPROTECTED' && month >= 1 && month <= 4) {
+            return [500, 1000];
+        } else if (tariff === 'AGRIFISHER') {
+            return [3000, 3000];
+        } else if (month >= 5) {
+            return [4000, 2000];
+        } else {
+            return [2000, 2000];
+        }
+    } else if (year === 2022 || year === 2023) {
+        if (tariff === 'AGRIFISHER') {
+            return [3000, 3000];
+        } else {
+            return [4000, 2000];
+        }
+    } else {
+        console.error('Thresholds not defined for year:', year);
+        return [0, 0]; // Return default values or handle the error as needed
+    }
+    
+}
+
+// Call the VAT calculation at the end
+calculateVAT();
+}
+
+// VAT calculation function
+function calculateVAT() {
+    var vatEligibility = document.getElementById('vat_eligibility').value;
+    if (vatEligibility.toLowerCase() !== 'yes') {
+        document.getElementById('vat_amount').value = '0.00';
+        return;
+    }
+
+    var vatStartDate = new Date(document.getElementById('vat_start_date').value);
+    var badFromDate = new Date(document.getElementById('bad_from_date').value);
+    var badToDate = new Date(document.getElementById('bad_to_date').value);
+    var recoveredAmount = parseFloat(document.getElementById('amount').value) || 0;
+    var recoveredDays = parseFloat(document.getElementById('num_days').value) || 0;
+    var vatRate = 0.05; // 5% VAT rate
+
+    if (isNaN(vatStartDate.getTime()) || isNaN(badFromDate.getTime()) || isNaN(badToDate.getTime()) || recoveredDays <= 0) {
+        alert("Invalid input for VAT calculation.");
+        document.getElementById('vat_amount').value = '0.00';
+        return;
+    }
+
+    var vatAmount = 0;
+    if (badFromDate < vatStartDate && badToDate > vatStartDate) {
+        var vatApplicableDays = Math.ceil((badToDate - vatStartDate) / (1000 * 60 * 60 * 24));
+        var vatPerDay = recoveredAmount / recoveredDays;
+        vatAmount = vatApplicableDays * vatPerDay * vatRate;
+    } else if (badFromDate >= vatStartDate) {
+        vatAmount = recoveredAmount * vatRate;
+    }
+
+    document.getElementById('vat_amount').value = vatAmount.toFixed(2);
+
+    //Calcualte Total Recvered Amount 
+    var recoveredvatAmount = parseFloat(document.getElementById('vat_amount').value) || 0;
+    var TotalrecoveredAmount = recoveredAmount+recoveredvatAmount
+    document.getElementById('Total Recovered Amount').value = TotalrecoveredAmount.toFixed(2);
+}
+        
+
+        
+
+
+</script>
+</body>
+</html>
